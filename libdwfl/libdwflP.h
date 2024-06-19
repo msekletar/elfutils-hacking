@@ -134,6 +134,7 @@ struct Dwfl
   int next_segndx;
 
   struct Dwfl_User_Core *user_core;
+  char *sysroot;	/* sysroot, or NULL to search standard system paths */
 };
 
 #define OFFLINE_REDZONE		0x10000

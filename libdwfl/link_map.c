@@ -33,6 +33,7 @@
 #include "system.h"
 
 #include <fcntl.h>
+#include <stdio.h>
 
 /* This element is always provided and always has a constant value.
    This makes it an easy thing to scan for to discern the format.  */
@@ -416,8 +417,21 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
       if (name != NULL)
 	{
 	  /* This code is mostly inlined dwfl_report_elf.  */
-	  // XXX hook for sysroot
-	  int fd = open (name, O_RDONLY);
+	  char *path_name;
+	  int rc;
+	  const char *sysroot = dwfl->sysroot;
+
+	  /* don't look in the sysroot if the path is already inside the sysroot */
+	  bool name_in_sysroot = sysroot && (strncmp(name, sysroot, strlen(sysroot)) == 0);
+
+	  if (!name_in_sysroot && sysroot)
+	    rc = asprintf(&path_name, "%s/%s", sysroot, name);
+	  else
+	    rc = asprintf(&path_name, "%s", name);
+	  if (unlikely(rc == -1))
+	    return release_buffer (&memory_closure, &buffer, &buffer_available, -1);
+
+	  int fd = open (path_name, O_RDONLY);
 	  if (fd >= 0)
 	    {
 	      Elf *elf;
@@ -502,6 +516,7 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
 		    close (fd);
 		}
 	    }
+	  free(path_name);
 	}
 
       if (mod != NULL)
@@ -1123,3 +1138,10 @@ dwfl_link_map_report (Dwfl *dwfl, const void *auxv, size_t auxv_size,
 			 &integrated_memory_callback, &mcb, r_debug_info);
 }
 INTDEF (dwfl_link_map_report)
+
+void
+dwfl_set_sysroot (Dwfl *dwfl, const char *sysroot)
+{
+  dwfl->sysroot = realpath(sysroot, NULL);
+}
+INTDEF (dwfl_set_sysroot)
