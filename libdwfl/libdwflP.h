@@ -698,7 +698,7 @@ struct r_debug_info
 
 /* ...
  */
-extern int dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
+extern int dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name, const char *executable,
 				       Dwfl_Memory_Callback *memory_callback,
 				       void *memory_callback_arg,
 				       Dwfl_Module_Callback *read_eagerly,

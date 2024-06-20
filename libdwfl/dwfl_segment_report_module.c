@@ -287,7 +287,7 @@ read_portion (struct read_state *read_state,
 }
 
 int
-dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
+dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name, const char *executable,
 			    Dwfl_Memory_Callback *memory_callback,
 			    void *memory_callback_arg,
 			    Dwfl_Module_Callback *read_eagerly,
@@ -778,7 +778,20 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
       name = file_note_name;
       name_is_final = true;
       bool invalid = false;
-      fd = open (name, O_RDONLY);
+
+      if (!executable && dwfl->sysroot)
+        { 
+          int r;
+          char *n;
+          r = asprintf(&n, "%s/%s", dwfl->sysroot, name);
+          if (r > 0)          
+            fd = open (n, O_RDONLY);
+        }
+      else
+        {
+          fd = open (name, O_RDONLY);
+        }
+
       if (fd >= 0)
 	{
 	  Dwfl_Error error = __libdw_open_file (&fd, &elf, true, false);

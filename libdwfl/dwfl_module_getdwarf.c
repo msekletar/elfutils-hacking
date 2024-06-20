@@ -941,7 +941,9 @@ find_aux_sym (Dwfl_Module *mod __attribute__ ((unused)),
   Elf *elf = mod->main.elf;
 
   size_t shstrndx;
-  if (elf_getshdrstrndx (elf, &shstrndx) < 0)
+  int r;
+  r = elf_getshdrstrndx (elf, &shstrndx);
+  if (r < 0)
     return;
 
   Elf_Scn *scn = NULL;
